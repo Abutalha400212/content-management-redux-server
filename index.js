@@ -9,37 +9,52 @@ const cors = require("cors");
 app.use(cors());
 app.use(express.json());
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.q66zrl2.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xddzsoq.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-
 const run = async () => {
   try {
-    const db = client.db("moontech");
-    const productCollection = db.collection("product");
+    console.log("db connected");
+    const db = client.db("content-management");
+    const contentCollection = db.collection("contents");
 
-    app.get("/products", async (req, res) => {
-      const cursor = productCollection.find({});
-      const product = await cursor.toArray();
+    app.get("/contents", async (req, res) => {
+      const cursor = contentCollection.find({});
+      const content = await cursor.toArray();
 
-      res.send({ status: true, data: product });
+      res.send({ status: true, data: content });
     });
 
-    app.post("/product", async (req, res) => {
-      const product = req.body;
+    app.post("/content", async (req, res) => {
+      const content = req.body;
 
-      const result = await productCollection.insertOne(product);
+      const result = await contentCollection.insertOne(content);
 
       res.send(result);
     });
 
-    app.delete("/product/:id", async (req, res) => {
+    app.delete("/content/:id", async (req, res) => {
       const id = req.params.id;
 
-      const result = await productCollection.deleteOne({ _id: ObjectId(id) });
+      const result = await contentCollection.deleteOne({ _id: ObjectId(id) });
+      res.send(result);
+    });
+    app.put("/content/:id", async (req, res) => {
+      const id = req.params.id;
+      const content = req.body.content;
+      console.log(content);
+      const updateDoc = {
+        $set: {
+          content: content,
+        },
+      };
+      const result = await contentCollection.updateOne(
+        { _id: ObjectId(id) },
+        updateDoc
+      );
       res.send(result);
     });
   } finally {
